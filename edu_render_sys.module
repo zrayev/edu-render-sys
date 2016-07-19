@@ -1,0 +1,157 @@
+<?php
+
+/**
+ * Implements hook_theme().
+ */
+function edu_render_sys_theme($existing, $type, $theme, $path) {
+  $items = array();
+
+  $items['edu_render_sys_render_content'] = array(
+    'render element' => 'edu_block',
+    'template' => 'templates/edu-render-sys-render-content',
+  );
+
+  $items['edu_render_sys_render_message'] = array(
+    'variables' => array('message' => NULL, 'mid' => NULL),
+    'template' => 'templates/edu-render-sys-render-message',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function edu_render_sys_preprocess_edu_render_sys_render_content(&$variables) {
+  if (!empty($variables['edu_block']['#attributes']['class'])) {
+    $variables['classes_array'] = array_merge($variables['classes_array'], $variables['edu_block']['#attributes']['class']);
+  }
+
+  if (!empty($variables['edu_block']['#attributes']['id'])) {
+    $variables['attributes_array']['id'] = $variables['edu_block']['#attributes']['id'];
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function edu_render_sys_preprocess_edu_render_sys_render_message(&$variables) {
+  $variables['classes_array'][] = 'test-message-' . 'id-' . $variables['id'];
+  $variables['classes_array'][] = 'test-message-' . $variables['zebra'];
+  $variables['classes_array'][] = 'test-message-' . 'mid-' . $variables['mid'];
+
+  unset($variables['mid']);
+}
+
+
+/**
+ * Implements hook_block_info().
+ */
+function edu_render_sys_block_info() {
+  $blocks['edu_render_sys_block'] = array(
+    'info' => t('EDU render system 1'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+
+  return $blocks;
+}
+
+
+/**
+ * Implements hook_block_view().
+ */
+function edu_render_sys_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'edu_render_sys_block':
+      $block['subject'] = 'EDU render system';
+
+      $message1 = t('EDU render system message 1');
+      $message2 = t('EDU render system message 2');
+
+//      $a = array();
+//      $b = array();
+//      $content = drupal_get_form('edu_render_sys_example_form');
+
+      $block['content'] = drupal_get_form('edu_render_sys_example_form');
+
+      break;
+  }
+
+  return $block;
+}
+
+
+function edu_render_sys_example_form($form, &$form_state) {
+  $form = array();
+
+  $form['userinfo'] = array(
+    '#title' => t('User Information'),
+    '#description' => t('You can add some information about yourself here'),
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#tree' => TRUE,
+    '#attributes' => array(
+      'class' => array(
+        'container-wrapper',
+        'container-wrapper-class-2',
+      ),
+    ),
+  );
+
+  $form['userinfo']['edu_render_sys_firstname'] = array(
+    '#title' => t('Firstname'),
+    '#type' => 'textfield',
+    '#description' => t('Enter your firstname into this field'),
+    '#default_value' => '',
+    '#maxlength' => 255,
+    '#size' => 16,
+    '#attributes' => array(
+      'placeholder' => t('John Doe'),
+      'class' => array(
+        'test-class',
+        'test-class-2',
+      ),
+    ),
+    '#weight' => 1,
+    '#required' => TRUE,
+  );
+
+  $form['userinfo']['edu_render_sys_student'] = array(
+    '#title' => t('You are student?'),
+    '#type' => 'checkbox',
+    '#weight' => 0,
+    '#default_value' => variable_get('edu_render_sys_student', 0),
+  );
+
+  $form['actions'] = array(
+    '#type' => 'actions',
+  );
+
+  $form['actions']['edu_render_sys_student_submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Send'),
+  );
+
+  return $form;
+}
+
+function edu_render_sys_example_form_submit($form, &$form_state) {
+  $values = $form_state['values']['userinfo'];
+
+  $is_student = $values['edu_render_sys_student'] ? "is" : "isn't";
+  $message_type = $values['edu_render_sys_student'] ? 'status' : 'warning';
+
+  $message = t('@name @is_student student', array(
+    '@name' => $values['edu_render_sys_firstname'],
+    '@is_student' => $is_student)
+  );
+
+  $c = $values['edu_render_sys_student'];
+  variable_set('edu_render_sys_student', $c);
+  $c1 = variable_get('edu_render_sys_student', 0);
+
+  drupal_set_message($message, $message_type);
+}
