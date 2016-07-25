@@ -105,7 +105,7 @@ function edu_render_sys_example_form($form, &$form_state) {
     '#title' => t('Firstname'),
     '#type' => 'textfield',
     '#description' => t('Enter your firstname into this field'),
-    '#default_value' => '',
+    '#default_value' => 'Chuck Norris',
     '#maxlength' => 255,
     '#size' => 16,
     '#attributes' => array(
@@ -117,6 +117,17 @@ function edu_render_sys_example_form($form, &$form_state) {
     ),
     '#weight' => 1,
     '#required' => TRUE,
+  );
+
+  $form['userinfo']['edu_render_sys_age'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Age'),
+    '#description' => t('Enter your age into this field'),
+    '#default_value' => '',
+    '#maxlength' => 2,
+    '#size' => 4,
+    '#weight' => 2,
+    '#element_validate' => array('element_validate_integer_positive'),
   );
 
   $form['userinfo']['edu_render_sys_student'] = array(
@@ -135,7 +146,35 @@ function edu_render_sys_example_form($form, &$form_state) {
     '#value' => t('Send'),
   );
 
+  $form['actions']['edu_render_sys_student_submit_test'] = array(
+    '#type' => 'submit',
+    '#value' => t('Test'),
+    '#submit' => array(
+      'edu_render_sys_example_form_submit_custom',
+    ),
+  );
+
+  $form['#submit'][] = 'edu_render_sys_example_form_submit';
+//  $form['#submit'][] = 'edu_render_sys_example_form_submit_custom';
+
   return $form;
+}
+
+function edu_render_sys_example_form_validate($form, &$form_state) {
+  $values = $form_state['values']['userinfo'];
+
+  if ($values['edu_render_sys_firstname'] == 'Jackie Chan') {
+    form_set_error(
+      'edu_render_sys_firstname',
+      t('@name is forbidden here, sorry', array('@name' => $values['edu_render_sys_firstname']))
+    );
+  }
+  elseif (!preg_match('/^[a-z\s]+$/i', $values['edu_render_sys_firstname'])) {
+    form_set_error(
+      'edu_render_sys_firstname',
+      t('The first name contains invalid characters')
+    );
+  }
 }
 
 function edu_render_sys_example_form_submit($form, &$form_state) {
@@ -154,4 +193,8 @@ function edu_render_sys_example_form_submit($form, &$form_state) {
   $c1 = variable_get('edu_render_sys_student', 0);
 
   drupal_set_message($message, $message_type);
+}
+
+function edu_render_sys_example_form_submit_custom($form, &$form_state) {
+  drupal_set_message(t('Custom submit has been triggered'));
 }
